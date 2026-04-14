@@ -1,0 +1,23 @@
+# Seed Dockerfile - runs once to populate database
+FROM golang:1.22-alpine AS builder
+
+WORKDIR /app
+
+RUN apk add --no-cache build-base
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+RUN go build -o seed ./cmd/seed
+
+# Run stage
+FROM alpine:latest
+
+WORKDIR /app
+
+COPY --from=builder /app/seed .
+COPY --from=builder /app/internal/dataset ./internal/dataset
+
+CMD ["./seed"]

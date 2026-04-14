@@ -1,0 +1,14 @@
+id,name,color,description
+1,Sweet,#E8B4B8,"Sugary, honeyed, caramel, vanilla flavors"
+2,Fruity,#F5A623,"Citrus, berry, tropical, stone fruit flavors"
+3,Floral,#D4A5D9,"Rose, jasmine, violet, blossom flavors"
+4,Herbal,#7CB342,"Green, grassy, mint, tea flavors"
+5,Spicy,#E65100,"Pepper, cinnamon, ginger, warm spice flavors"
+6,Woody,#8D6E63,"Oak, cedar, nutty, resinous flavors"
+7,Earthy,#795548,"Mushroom, soil, mineral flavors"
+8,Roasted,#5D4037,"Coffee, toast, smoky, malt flavors"
+9,Savory,#C62828,"Meaty, umami, cheese, fermented flavors"
+10,Marine,#0288D1,"Briny, fishy, seaweed flavors"
+11,Acidic,#FDD835,"Sour, tangy, vinegar flavors"
+12,Chemical,#9E9E9E,"Medicinal, solvent, phenolic flavors"
+13,Other,#BDBDBD,Miscellaneous flavor notes
