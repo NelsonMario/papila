@@ -3,6 +3,10 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Build argument for API URL (gets baked into the build)
+ARG NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 COPY package*.json ./
 RUN npm install
 

@@ -4,10 +4,227 @@
 
 ---
 
-## Ingredients API
+## Ingredient Flavor Analysis API
+
+These endpoints power the main flavor pairing explorer.
 
 ### Search Ingredients
-Find ingredients by name.
+
+Search for ingredients by name with fuzzy matching.
+
+- **URL:** `GET /graph/ingredients/search`
+- **Query Parameters:**
+  - `q` (string, required) - Search term
+  - `limit` (int, optional) - Max results (default: 10)
+- **Example:** `/graph/ingredients/search?q=tom&limit=5`
+- **Response:**
+```json
+{
+  "status": "success",
+  "results": [
+    { "name": "tomato", "category": "vegetable" },
+    { "name": "tomato juice", "category": "beverage" }
+  ]
+}
+```
+
+### Get Ingredient Flavor Profiles
+
+Get the flavor notes/compounds for an ingredient.
+
+- **URL:** `GET /graph/ingredients/:ingredient/profiles`
+- **Example:** `/graph/ingredients/tomato/profiles`
+- **Response:**
+```json
+{
+  "status": "success",
+  "ingredient": "tomato",
+  "profiles": [
+    { "flavor_note": "green", "molecule_count": 45 },
+    { "flavor_note": "fruity", "molecule_count": 38 },
+    { "flavor_note": "sweet", "molecule_count": 32 }
+  ]
+}
+```
+
+### Get Pairing Score
+
+Calculate the pairing compatibility between two ingredients using Jaccard similarity.
+
+- **URL:** `GET /graph/ingredients/pairing`
+- **Query Parameters:**
+  - `a` (string, required) - First ingredient
+  - `b` (string, required) - Second ingredient
+- **Example:** `/graph/ingredients/pairing?a=tomato&b=basil`
+- **Response:**
+```json
+{
+  "status": "success",
+  "ingredient_a": "tomato",
+  "ingredient_b": "basil",
+  "shared_flavor_notes": ["green", "herbal", "spicy", "earthy"],
+  "shared_count": 15,
+  "pairing_score": 0.42,
+  "result": "good"
+}
+```
+
+**Pairing Score:** 0.0 to 1.0 (Jaccard similarity of shared flavor notes)
+
+### Get Shared Flavor Profiles
+
+Get flavor notes shared across multiple ingredients.
+
+- **URL:** `POST /graph/ingredients/shared-profiles`
+- **Body:**
+```json
+{
+  "ingredients": ["tomato", "basil", "garlic"]
+}
+```
+- **Response:**
+```json
+{
+  "status": "success",
+  "profiles": [
+    {
+      "flavor_note": "green",
+      "total_molecules": 120,
+      "ingredient_count": 3,
+      "ingredient_sources": ["tomato", "basil", "garlic"]
+    },
+    {
+      "flavor_note": "spicy",
+      "total_molecules": 85,
+      "ingredient_count": 2,
+      "ingredient_sources": ["basil", "garlic"]
+    }
+  ]
+}
+```
+
+### Get Recommended Pairings
+
+Get ingredient recommendations that pair well with a given ingredient.
+
+- **URL:** `GET /graph/ingredients/:ingredient/recommendations`
+- **Query Parameters:**
+  - `limit` (int, optional) - Max results (default: 10)
+- **Example:** `/graph/ingredients/tomato/recommendations?limit=6`
+- **Response:**
+```json
+{
+  "status": "success",
+  "ingredient": "tomato",
+  "pairings": [
+    {
+      "ingredient_name": "basil",
+      "shared_count": 15,
+      "pairing_score": 0.42
+    },
+    {
+      "ingredient_name": "olive oil",
+      "shared_count": 12,
+      "pairing_score": 0.38
+    }
+  ]
+}
+```
+
+### Get Clashing Pairings
+
+Get ingredients that don't pair well with a given ingredient.
+
+- **URL:** `GET /graph/ingredients/:ingredient/clashing`
+- **Query Parameters:**
+  - `limit` (int, optional) - Max results (default: 10)
+- **Response:**
+```json
+{
+  "status": "success",
+  "ingredient": "chocolate",
+  "pairings": [
+    {
+      "ingredient_name": "fish",
+      "shared_count": 2,
+      "pairing_score": 0.03
+    }
+  ]
+}
+```
+
+---
+
+## Flavor Wheel API
+
+### Get Flavor Wheel Data
+
+Get all flavor categories with their associated flavor notes for the wheel visualization.
+
+- **URL:** `GET /graph/wheel`
+- **Response:**
+```json
+{
+  "status": "success",
+  "wheel": [
+    {
+      "category_name": "Fruity",
+      "category_color": "#FF6B6B",
+      "flavor_count": 45,
+      "flavors": "[{\"id\":1,\"name\":\"apple\"},{\"id\":2,\"name\":\"berry\"}]"
+    },
+    {
+      "category_name": "Spicy",
+      "category_color": "#FF8C42",
+      "flavor_count": 28,
+      "flavors": "[{\"id\":10,\"name\":\"pepper\"},{\"id\":11,\"name\":\"cinnamon\"}]"
+    }
+  ]
+}
+```
+
+### Get Flavor Categories
+
+Get list of flavor categories.
+
+- **URL:** `GET /graph/categories`
+- **Response:**
+```json
+{
+  "status": "success",
+  "categories": [
+    { "id": 1, "name": "Fruity", "color": "#FF6B6B" },
+    { "id": 2, "name": "Spicy", "color": "#FF8C42" }
+  ]
+}
+```
+
+### Get Flavors by Category
+
+Get all flavor notes in a specific category.
+
+- **URL:** `GET /graph/categories/:category/flavors`
+- **Example:** `/graph/categories/fruity/flavors`
+- **Response:**
+```json
+{
+  "status": "success",
+  "category": "fruity",
+  "flavors": [
+    { "id": 1, "name": "apple" },
+    { "id": 2, "name": "berry" },
+    { "id": 3, "name": "citrus" }
+  ]
+}
+```
+
+---
+
+## Legacy Ingredients API
+
+Basic ingredient search and analysis (original endpoints).
+
+### Search Ingredients
 
 - **URL:** `GET /search`
 - **Query:** `q` (string) - search term
@@ -21,7 +238,6 @@ Find ingredients by name.
 ```
 
 ### Get Ingredient Details
-Get ingredient with its flavor molecules.
 
 - **URL:** `GET /ingredients/:id`
 - **Response:**
@@ -37,70 +253,48 @@ Get ingredient with its flavor molecules.
 ```
 
 ### Analyze Pairing Stack
-Calculate optimal pairings for ingredients.
 
 - **URL:** `POST /analyze`
 - **Body:**
 ```json
 { "stack": ["uuid-1", "uuid-2"] }
 ```
-- **Response:**
-```json
-{
-  "status": "success",
-  "data": [
-    {
-      "ingredient_id": "uuid-3",
-      "ingredient_name": "Balsamic Vinegar",
-      "category": "Condiment",
-      "shared_count": 5,
-      "jaccard_score": 0.45
-    }
-  ]
-}
-```
 
 ### Recommend Pairings
-Get top pairing recommendations.
 
 - **URL:** `POST /recommend`
 - **Body:**
 ```json
 { "ingredients": ["uuid-1", "uuid-2"], "limit": 5 }
 ```
-- **Response:**
-```json
-{
-  "status": "success",
-  "recommendations": [...]
-}
-```
 
 ---
 
-## Flavor Graph API
+## Flavor Graph API (pgRouting)
 
-Graph-based flavor pairing using pgRouting.
+Graph-based flavor pairing using PostgreSQL pgRouting extension.
 
 ### Get Graph Stats
+
 - **URL:** `GET /graph/stats`
 - **Response:**
 ```json
 {
   "status": "success",
   "stats": {
-    "node_count": 76,
-    "edge_count": 215,
-    "positive_edges": 140,
-    "negative_edges": 75
+    "node_count": 301,
+    "edge_count": 3014
   }
 }
 ```
 
 ### Get Harmony Score
-Check if two flavors pair well.
 
-- **URL:** `GET /graph/harmony?a=chocolate&b=vanilla`
+Check if two flavor notes pair well.
+
+- **URL:** `GET /graph/harmony`
+- **Query:** `a`, `b` - flavor note names
+- **Example:** `/graph/harmony?a=chocolate&b=vanilla`
 - **Response:**
 ```json
 {
@@ -111,108 +305,50 @@ Check if two flavors pair well.
   "result": "harmonious"
 }
 ```
-- **Result values:** `harmonious` (>0.3), `clashing` (<-0.3), `neutral`, `unknown`
 
-### Get Best Pairings
+### Get Flavor Pairings
+
 Find flavors that pair well with a note.
 
-- **URL:** `GET /graph/pairings/:note?limit=10`
-- **Response:**
-```json
-{
-  "status": "success",
-  "note": "chocolate",
-  "pairings": [
-    { "flavor_note": "vanilla", "harmony_score": 0.95 },
-    { "flavor_note": "hazelnut", "harmony_score": 0.93 }
-  ]
-}
-```
+- **URL:** `GET /graph/pairings/:note`
+- **Query:** `limit` (optional, default: 10)
 
-### Get Clashing Pairings
+### Get Flavor Clashes
+
 Find flavors to avoid.
 
-- **URL:** `GET /graph/clashes/:note?limit=10`
-- **Response:**
-```json
-{
-  "status": "success",
-  "note": "chocolate",
-  "clashes": [
-    { "flavor_note": "garlic", "harmony_score": -0.80 },
-    { "flavor_note": "fish", "harmony_score": -0.80 }
-  ]
-}
-```
+- **URL:** `GET /graph/clashes/:note`
 
-### Find Nearby Flavors (pgRouting)
-Find all flavors within a graph distance.
+### Find Nearby Flavors
 
-- **URL:** `GET /graph/nearby/:note?distance=2.0`
-- **Response:**
-```json
-{
-  "status": "success",
-  "note": "chocolate",
-  "nearby": [
-    { "flavor_name": "vanilla", "distance": 0.05 },
-    { "flavor_name": "coffee", "distance": 0.10 }
-  ]
-}
-```
+Find all flavors within a graph distance (pgRouting).
 
-### Find Flavor Path (pgRouting)
+- **URL:** `GET /graph/nearby/:note`
+- **Query:** `distance` (optional, default: 2.0)
+
+### Find Flavor Path
+
 Find shortest path between two flavors using Dijkstra.
 
-- **URL:** `GET /graph/path?start=chocolate&end=garlic`
-- **Response:**
-```json
-{
-  "status": "success",
-  "start": "chocolate",
-  "end": "garlic",
-  "path": [
-    { "seq": 1, "flavor_name": "chocolate", "agg_cost": 0 },
-    { "seq": 2, "flavor_name": "vanilla", "agg_cost": 0.05 },
-    { "seq": 3, "flavor_name": "cream", "agg_cost": 0.10 }
-  ],
-  "total_cost": 0.10
-}
-```
+- **URL:** `GET /graph/path`
+- **Query:** `start`, `end`
 
-### Find Alternative Paths (pgRouting K-Shortest)
-Find K shortest alternative paths.
+### Find Alternative Paths
 
-- **URL:** `GET /graph/paths?start=chocolate&end=lemon&k=3`
-- **Response:**
-```json
-{
-  "status": "success",
-  "start": "chocolate",
-  "end": "lemon",
-  "paths": [
-    { "path_id": 1, "seq": 1, "flavor_name": "chocolate", "agg_cost": 0 },
-    { "path_id": 1, "seq": 2, "flavor_name": "orange", "agg_cost": 0.18 },
-    { "path_id": 1, "seq": 3, "flavor_name": "lemon", "agg_cost": 0.30 }
-  ]
-}
-```
+Find K shortest alternative paths (pgRouting KSP).
+
+- **URL:** `GET /graph/paths`
+- **Query:** `start`, `end`, `k` (number of paths)
 
 ### Find Bridging Flavors
+
 Find flavors that bridge two incompatible ones.
 
-- **URL:** `GET /graph/bridge?a=fish&b=chocolate&limit=5`
-- **Response:**
-```json
-{
-  "status": "success",
-  "note_a": "fish",
-  "note_b": "chocolate",
-  "bridges": ["lemon", "butter", "cream"]
-}
-```
+- **URL:** `GET /graph/bridge`
+- **Query:** `a`, `b`, `limit`
 
 ### Analyze Flavor Combination
+
 Analyze harmony of multiple flavors together.
 
 - **URL:** `POST /graph/analyze`
@@ -220,29 +356,25 @@ Analyze harmony of multiple flavors together.
 ```json
 { "notes": ["chocolate", "vanilla", "garlic"] }
 ```
-- **Response:**
-```json
-{
-  "status": "success",
-  "notes": ["chocolate", "vanilla", "garlic"],
-  "pair_analyses": [
-    { "note_a": "chocolate", "note_b": "vanilla", "harmony_score": 0.95, "result": "harmonious" },
-    { "note_a": "chocolate", "note_b": "garlic", "harmony_score": -0.80, "result": "clashing" },
-    { "note_a": "vanilla", "note_b": "garlic", "harmony_score": -0.75, "result": "clashing" }
-  ],
-  "average_score": -0.20,
-  "clash_count": 2,
-  "overall_result": "problematic"
-}
-```
-- **Overall result:** `harmonious`, `balanced`, `problematic`, `unknown`
 
 ---
 
-## Error Codes
+## Error Responses
+
+All endpoints return errors in this format:
+
+```json
+{
+  "status": "error",
+  "message": "Description of what went wrong"
+}
+```
+
+### HTTP Status Codes
 
 | Code | Description |
 |------|-------------|
-| 400  | Invalid request body or missing parameters |
+| 200  | Success |
+| 400  | Invalid request (missing params, bad format) |
 | 404  | Resource not found |
 | 500  | Internal server error |
