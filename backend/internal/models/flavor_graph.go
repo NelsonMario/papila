@@ -46,8 +46,8 @@ type FlavorSearchResult struct {
 	Similarity float32 `gorm:"column:similarity" json:"similarity"`
 }
 
-// FlavorPairing is a query result for pairings
-type FlavorPairing struct {
+// FlavorNoteHarmony is a query result for flavor note harmonies
+type FlavorNoteHarmony struct {
 	FlavorNote   string  `gorm:"column:flavor_note" json:"flavor_note"`
 	HarmonyScore float64 `gorm:"column:harmony_score" json:"harmony_score"`
 }
@@ -73,6 +73,16 @@ type PathStep struct {
 type FlavorDistance struct {
 	FlavorName string  `gorm:"column:flavor_name" json:"flavor_name"`
 	Distance   float64 `gorm:"column:distance" json:"distance"`
+}
+
+// FlavorPairing represents a pairing between two flavors
+type FlavorPairing struct {
+	SourceFlavor   string  `gorm:"column:source_flavor" json:"source_flavor"`
+	SourceCategory string  `gorm:"column:source_category" json:"source_category"`
+	TargetFlavor   string  `gorm:"column:target_flavor" json:"target_flavor"`
+	TargetCategory string  `gorm:"column:target_category" json:"target_category"`
+	CoOccurrence   int     `gorm:"column:co_occurrence" json:"co_occurrence"`
+	HarmonyScore   float64 `gorm:"column:harmony_score" json:"harmony_score"`
 }
 
 // PairAnalysis represents analysis of a flavor pair

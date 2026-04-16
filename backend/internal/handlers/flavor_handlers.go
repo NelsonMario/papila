@@ -361,3 +361,18 @@ func (h *GraphHandler) GetFlavorsByCategory(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{"status": "success", "category": category, "flavors": flavors})
 }
+
+// GetFlavorPairingWheel returns common flavor pairings for the pairing wheel visualization
+func (h *GraphHandler) GetFlavorPairingWheel(c *fiber.Ctx) error {
+	limit := c.QueryInt("limit", 50)
+	if limit > 200 {
+		limit = 200
+	}
+
+	pairings, err := h.flavorDAO.GetFlavorPairings(c.Context(), limit)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "pairings": pairings})
+}

@@ -79,6 +79,9 @@ export const getRecommendedPairings = (ingredient: string, limit = 10) =>
 export const getFlavorWheelData = () =>
   fetchAPI<{ wheel: FlavorWheelCategory[] }>('/graph/wheel');
 
+export const getFlavorPairings = (limit = 50) =>
+  fetchAPI<{ pairings: FlavorPairing[] }>(`/graph/wheel/pairings?limit=${limit}`);
+
 export const getFlavorCategories = () =>
   fetchAPI<{ categories: FlavorCategory[] }>('/graph/categories');
 
@@ -207,4 +210,13 @@ export interface RecommendedPairing {
   shared_count: number;
   shared_flavors: string[];
   shared_molecules: number;
+}
+
+export interface FlavorPairing {
+  source_flavor: string;
+  source_category: string;
+  target_flavor: string;
+  target_category: string;
+  co_occurrence: number;
+  harmony_score: number;
 }

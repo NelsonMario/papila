@@ -66,6 +66,7 @@ func main() {
 
 	// Flavor Wheel API
 	graph.Get("/wheel", graphHandler.GetFlavorWheelData)
+	graph.Get("/wheel/pairings", graphHandler.GetFlavorPairingWheel)
 	graph.Get("/categories", graphHandler.GetFlavorCategories)
 	graph.Get("/categories/:category/flavors", graphHandler.GetFlavorsByCategory)
 

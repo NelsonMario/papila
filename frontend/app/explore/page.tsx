@@ -4,18 +4,19 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SearchBar from '@/components/SearchBar';
 import ChordDiagram from '@/components/ChordDiagram';
-import FlavorWheel from '@/components/FlavorWheel';
+import PairingWheel from '@/components/PairingWheel';
 import CorrelationDiagram from '@/components/CorrelationDiagram';
 import Skeleton, { SkeletonCard, SkeletonRecommendation } from '@/components/Skeleton';
 import {
   getIngredientFlavorProfiles,
   getSharedFlavorProfiles,
   getIngredientPairingScore,
-  getFlavorWheelData,
+  getFlavorPairings,
   getRecommendedPairings,
   FlavorProfile,
   SharedFlavorProfile,
   RecommendedPairing,
+  FlavorPairing,
 } from '@/lib/api';
 
 interface RecommendationDetailProps {
@@ -125,12 +126,6 @@ function RecommendationDetail({ recommendation, baseIngredient, onClose, onAdd }
   );
 }
 
-interface ParsedWheelCategory {
-  category_name: string;
-  category_color: string;
-  flavor_count: number;
-  flavors: { id: number; name: string }[];
-}
 
 const MAX_COMPARE = 3;
 const MONO_COLORS = ['#2a2a2a', '#555555', '#808080'];
@@ -147,7 +142,7 @@ interface PairingConnection {
   sharedCount: number;
 }
 
-type ViewMode = 'overview' | 'harmonies' | 'wheel' | 'correlation';
+type ViewMode = 'overview' | 'harmonies' | 'pairings' | 'correlation';
 
 const transition = { duration: 0.4, ease: 'easeOut' as const };
 
@@ -160,19 +155,15 @@ export default function ExplorePage() {
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('overview');
-  const [wheelCategories, setWheelCategories] = useState<ParsedWheelCategory[]>([]);
+  const [flavorPairings, setFlavorPairings] = useState<FlavorPairing[]>([]);
   const [recommendations, setRecommendations] = useState<RecommendedPairing[]>([]);
   const [correlationPair, setCorrelationPair] = useState<[string, string] | null>(null);
   const [selectedRecommendation, setSelectedRecommendation] = useState<RecommendedPairing | null>(null);
 
   useEffect(() => {
-    getFlavorWheelData().then(res => {
-      if (res.wheel) {
-        const parsed = res.wheel.map(cat => ({
-          ...cat,
-          flavors: typeof cat.flavors === 'string' ? JSON.parse(cat.flavors) : cat.flavors
-        }));
-        setWheelCategories(parsed);
+    getFlavorPairings(100).then(res => {
+      if (res.pairings) {
+        setFlavorPairings(res.pairings);
       }
     }).catch(console.error);
   }, []);
@@ -444,7 +435,7 @@ export default function ExplorePage() {
               >
                 {[
                   { id: 'overview', label: 'Overview' },
-                  { id: 'wheel', label: 'Wheel' },
+                  { id: 'pairings', label: 'Pairings' },
                   ...(selectedIngredients.length >= 2 ? [{ id: 'harmonies', label: 'Harmonies' }] : []),
                 ].map((tab) => (
                   <button
@@ -495,24 +486,32 @@ export default function ExplorePage() {
                   </motion.div>
                 )}
 
-                {/* Wheel View */}
-                {viewMode === 'wheel' && (
+                {/* Pairings View */}
+                {viewMode === 'pairings' && (
                   <motion.div
-                    key="wheel"
+                    key="pairings"
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={transition}
                     className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-neutral-200 overflow-x-auto"
                   >
+                    <h3 className="text-xs sm:text-sm font-medium text-neutral-400 mb-4 uppercase tracking-wide">
+                      Flavor Pairings
+                    </h3>
+                    <p className="text-sm text-neutral-500 mb-6">
+                      Common flavor combinations based on molecular co-occurrence
+                    </p>
                     <div className="min-w-[320px]">
-                      <FlavorWheel
-                        categories={wheelCategories}
-                        ingredientFlavors={selectedIngredients.map((ing, i) => ({
-                          ingredient: ing,
-                          flavors: (ingredientProfiles[ing] || []).slice(0, 25).map(p => p.flavor_note),
-                          color: MONO_COLORS[i % MONO_COLORS.length],
-                        }))}
+                      <PairingWheel
+                        pairings={flavorPairings}
+                        highlightFlavors={
+                          selectedIngredients.length > 0
+                            ? selectedIngredients.flatMap(ing => 
+                                (ingredientProfiles[ing] || []).slice(0, 10).map(p => p.flavor_note)
+                              )
+                            : []
+                        }
                       />
                     </div>
                   </motion.div>

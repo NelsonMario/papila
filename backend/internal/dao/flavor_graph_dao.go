@@ -28,6 +28,8 @@ type FlavorGraphDAO interface {
 	GetFlavorCategories(ctx context.Context) ([]models.FlavorCategory, error)
 	GetFlavorWheelData(ctx context.Context) ([]models.FlavorWheelCategory, error)
 	GetFlavorsByCategory(ctx context.Context, category string) ([]models.FlavorNodeWithCount, error)
+	// Flavor pairings
+	GetFlavorPairings(ctx context.Context, limit int) ([]models.FlavorPairing, error)
 }
 
 type flavorGraphDAO struct {
@@ -183,6 +185,28 @@ func (d *flavorGraphDAO) GetFlavorsByCategory(ctx context.Context, category stri
 	var results []models.FlavorNodeWithCount
 	err := d.db.WithContext(ctx).
 		Raw("SELECT * FROM get_flavors_by_category(?)", category).
+		Scan(&results).Error
+	return results, err
+}
+
+func (d *flavorGraphDAO) GetFlavorPairings(ctx context.Context, limit int) ([]models.FlavorPairing, error) {
+	var results []models.FlavorPairing
+	err := d.db.WithContext(ctx).
+		Raw(`
+			SELECT 
+				fn1.name AS source_flavor,
+				fn1.category AS source_category,
+				fn2.name AS target_flavor,
+				fn2.category AS target_category,
+				ROUND(100 / GREATEST(fe.cost, 0.01))::INT AS co_occurrence,
+				fe.harmony_score
+			FROM flavor_edges fe
+			JOIN flavor_nodes fn1 ON fn1.id = fe.source
+			JOIN flavor_nodes fn2 ON fn2.id = fe.target
+			WHERE fe.harmony_score > 0.2
+			ORDER BY fe.harmony_score DESC, fe.cost ASC
+			LIMIT ?
+		`, limit).
 		Scan(&results).Error
 	return results, err
 }
