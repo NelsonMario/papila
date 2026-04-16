@@ -446,30 +446,30 @@ RETURNS TABLE (
     ingredient_name VARCHAR,
     ingredient_category VARCHAR,
     shared_count INT,
-    pairing_score DOUBLE PRECISION
+    shared_flavors VARCHAR[],
+    shared_molecules INT
 ) AS $$
 BEGIN
-    -- Create temp table with target ingredient's flavors
-    CREATE TEMP TABLE IF NOT EXISTS temp_target_flavors (flavor VARCHAR) ON COMMIT DROP;
-    TRUNCATE temp_target_flavors;
-    
-    INSERT INTO temp_target_flavors (flavor)
-    SELECT DISTINCT TRIM(f.flavor) AS flavor
-    FROM ingredients i
-    JOIN ingredient_molecules im ON im.ingredient_id = i.id
-    JOIN molecules m ON m.id = im.molecule_id,
-    LATERAL unnest(string_to_array(
-        regexp_replace(regexp_replace(m.flavor_description, '[{}'']', '', 'g'), ', ', ',', 'g'), 
-        ','
-    )) AS f(flavor)
-    WHERE i.name = target_ingredient 
-      AND m.flavor_description IS NOT NULL 
-      AND m.flavor_description != '{}'
-      AND LENGTH(TRIM(f.flavor)) > 1;
-    
     RETURN QUERY
-    WITH target_count AS (
-        SELECT COUNT(*) AS cnt FROM temp_target_flavors
+    WITH target_molecules AS (
+        SELECT DISTINCT im.molecule_id
+        FROM ingredients i
+        JOIN ingredient_molecules im ON im.ingredient_id = i.id
+        WHERE i.name = target_ingredient
+    ),
+    target_flavors AS (
+        SELECT DISTINCT TRIM(f.flavor) AS flavor
+        FROM ingredients i
+        JOIN ingredient_molecules im ON im.ingredient_id = i.id
+        JOIN molecules m ON m.id = im.molecule_id,
+        LATERAL unnest(string_to_array(
+            regexp_replace(regexp_replace(m.flavor_description, '[{}'']', '', 'g'), ', ', ',', 'g'), 
+            ','
+        )) AS f(flavor)
+        WHERE i.name = target_ingredient 
+          AND m.flavor_description IS NOT NULL 
+          AND m.flavor_description != '{}'
+          AND LENGTH(TRIM(f.flavor)) > 1
     ),
     other_flavors AS (
         SELECT 
@@ -488,32 +488,36 @@ BEGIN
           AND m.flavor_description != '{}'
           AND LENGTH(TRIM(f.flavor)) > 1
     ),
-    other_counts AS (
-        SELECT ing_name, COUNT(DISTINCT flavor) AS total_flavors
-        FROM other_flavors
-        GROUP BY ing_name
-    ),
-    shared_calc AS (
+    shared_with_flavors AS (
         SELECT 
             of.ing_name,
             of.ing_category,
+            array_agg(DISTINCT of.flavor ORDER BY of.flavor) AS flavors,
             COUNT(DISTINCT of.flavor) AS shared
         FROM other_flavors of
-        WHERE EXISTS (SELECT 1 FROM temp_target_flavors t WHERE t.flavor = of.flavor)
+        WHERE of.flavor IN (SELECT flavor FROM target_flavors)
         GROUP BY of.ing_name, of.ing_category
+    ),
+    molecule_overlap AS (
+        SELECT 
+            i.name AS ing_name,
+            COUNT(DISTINCT im.molecule_id) AS mol_count
+        FROM ingredients i
+        JOIN ingredient_molecules im ON im.ingredient_id = i.id
+        WHERE i.name != target_ingredient
+          AND im.molecule_id IN (SELECT molecule_id FROM target_molecules)
+        GROUP BY i.name
     )
     SELECT 
-        sc.ing_name::VARCHAR AS ingredient_name,
-        sc.ing_category::VARCHAR AS ingredient_category,
-        sc.shared::INT AS shared_count,
-        (sc.shared::DOUBLE PRECISION / GREATEST(
-            (SELECT cnt FROM target_count) + oc.total_flavors - sc.shared, 
-            1
-        ))::DOUBLE PRECISION AS pairing_score
-    FROM shared_calc sc
-    JOIN other_counts oc ON oc.ing_name = sc.ing_name
-    WHERE sc.shared >= 5
-    ORDER BY pairing_score DESC, shared DESC
+        swf.ing_name::VARCHAR AS ingredient_name,
+        swf.ing_category::VARCHAR AS ingredient_category,
+        swf.shared::INT AS shared_count,
+        swf.flavors[1:8]::VARCHAR[] AS shared_flavors,
+        COALESCE(mo.mol_count, 0)::INT AS shared_molecules
+    FROM shared_with_flavors swf
+    LEFT JOIN molecule_overlap mo ON mo.ing_name = swf.ing_name
+    WHERE swf.shared >= 5
+    ORDER BY swf.shared DESC, mo.mol_count DESC NULLS LAST
     LIMIT limit_count;
 END;
 $$ LANGUAGE plpgsql;

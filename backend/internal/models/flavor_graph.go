@@ -129,8 +129,9 @@ type FlavorNodeWithCount struct {
 
 // RecommendedPairing represents a recommended ingredient pairing
 type RecommendedPairing struct {
-	IngredientName     string  `gorm:"column:ingredient_name" json:"ingredient_name"`
-	IngredientCategory string  `gorm:"column:ingredient_category" json:"ingredient_category"`
-	SharedCount        int     `gorm:"column:shared_count" json:"shared_count"`
-	PairingScore       float64 `gorm:"column:pairing_score" json:"pairing_score"`
+	IngredientName     string         `gorm:"column:ingredient_name" json:"ingredient_name"`
+	IngredientCategory string         `gorm:"column:ingredient_category" json:"ingredient_category"`
+	SharedCount        int            `gorm:"column:shared_count" json:"shared_count"`
+	SharedFlavors      pq.StringArray `gorm:"column:shared_flavors;type:varchar[]" json:"shared_flavors"`
+	SharedMolecules    int            `gorm:"column:shared_molecules" json:"shared_molecules"`
 }

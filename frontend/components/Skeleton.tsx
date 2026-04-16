@@ -49,14 +49,14 @@ export default function Skeleton({
 
 export function SkeletonCard({ className = '' }: { className?: string }) {
   return (
-    <div className={`bg-white rounded-2xl p-6 ${className}`}>
-      <div className="flex items-center gap-3 mb-5">
+    <div className={`bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-neutral-200 ${className}`}>
+      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5">
         <Skeleton variant="circular" width={16} height={16} />
-        <Skeleton variant="text" width="60%" height={24} />
+        <Skeleton variant="text" width="50%" height={24} />
       </div>
-      <div className="flex flex-wrap gap-2">
-        {[1, 2, 3, 4, 5].map(i => (
-          <Skeleton key={i} variant="pill" width={70 + i * 10} height={32} />
+      <div className="flex flex-wrap gap-1.5 sm:gap-2">
+        {[1, 2, 3, 4, 5, 6].map(i => (
+          <Skeleton key={i} variant="pill" width={60 + i * 8} height={28} />
         ))}
       </div>
     </div>
@@ -65,56 +65,26 @@ export function SkeletonCard({ className = '' }: { className?: string }) {
 
 export function SkeletonRecommendation({ className = '' }: { className?: string }) {
   return (
-    <div className={`bg-white rounded-2xl p-5 ${className}`}>
-      <div className="flex justify-between items-start mb-4">
-        <Skeleton variant="text" width="50%" height={28} />
-        <Skeleton variant="circular" width={40} height={40} />
-      </div>
-      <div className="space-y-3">
-        <div>
-          <Skeleton variant="text" width="30%" height={12} className="mb-2" />
-          <Skeleton variant="pill" width="100%" height={6} />
+    <div className={`bg-[#f5f3ef] rounded-xl sm:rounded-2xl overflow-hidden border border-neutral-200 ${className}`}>
+      <div className="p-3 sm:p-4 pb-3">
+        <div className="flex justify-between items-start mb-1">
+          <Skeleton variant="text" width={80} height={18} />
+          <Skeleton variant="rectangular" width={24} height={24} className="rounded" />
         </div>
-        <div>
-          <Skeleton variant="text" width="30%" height={12} className="mb-2" />
-          <Skeleton variant="pill" width="70%" height={6} />
-        </div>
+        <Skeleton variant="text" width={50} height={12} className="mt-1" />
       </div>
-    </div>
-  );
-}
-
-export function SkeletonWheel({ className = '' }: { className?: string }) {
-  return (
-    <div className={`flex flex-col items-center py-8 ${className}`}>
-      <div className="flex gap-4 mb-8">
-        {[1, 2, 3].map(i => (
-          <Skeleton key={i} variant="pill" width={100} height={36} />
-        ))}
-      </div>
-      <Skeleton variant="circular" width={300} height={300} />
-    </div>
-  );
-}
-
-export function SkeletonConnection({ className = '' }: { className?: string }) {
-  return (
-    <div className={`${className}`}>
-      <div className="flex items-center gap-4 mb-3">
+      <div className="px-3 sm:px-4 pb-3 sm:pb-4 space-y-2">
         <div className="flex items-center gap-2">
-          <Skeleton variant="circular" width={12} height={12} />
-          <Skeleton variant="text" width={80} height={20} />
+          <Skeleton variant="text" width={50} height={10} />
+          <Skeleton variant="rectangular" width="100%" height={8} className="flex-1 rounded-full" />
+          <Skeleton variant="text" width={24} height={12} />
         </div>
-        <Skeleton variant="text" width={20} height={20} />
         <div className="flex items-center gap-2">
-          <Skeleton variant="circular" width={12} height={12} />
-          <Skeleton variant="text" width={80} height={20} />
-        </div>
-        <div className="ml-auto">
-          <Skeleton variant="text" width={60} height={36} />
+          <Skeleton variant="text" width={50} height={10} />
+          <Skeleton variant="rectangular" width="100%" height={8} className="flex-1 rounded-full" />
+          <Skeleton variant="text" width={24} height={12} />
         </div>
       </div>
-      <Skeleton variant="pill" width="100%" height={8} />
     </div>
   );
 }

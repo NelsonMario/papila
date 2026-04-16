@@ -205,6 +205,6 @@ export interface RecommendedPairing {
   ingredient_name: string;
   ingredient_category: string;
   shared_count: number;
-  pairing_score: number;
-  result: string;
+  shared_flavors: string[];
+  shared_molecules: number;
 }

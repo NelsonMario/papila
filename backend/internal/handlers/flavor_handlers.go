@@ -322,37 +322,10 @@ func (h *GraphHandler) GetRecommendedPairings(c *fiber.Ctx) error {
 	}
 
 	// Add result classification based on pairing score
-	type pairingWithResult struct {
-		IngredientName     string  `json:"ingredient_name"`
-		IngredientCategory string  `json:"ingredient_category"`
-		SharedCount        int     `json:"shared_count"`
-		PairingScore       float64 `json:"pairing_score"`
-		Result             string  `json:"result"`
-	}
-
-	results := make([]pairingWithResult, len(pairings))
-	for i, p := range pairings {
-		result := "weak"
-		if p.PairingScore >= 0.5 {
-			result = "excellent"
-		} else if p.PairingScore >= 0.3 {
-			result = "good"
-		} else if p.PairingScore >= 0.15 {
-			result = "moderate"
-		}
-		results[i] = pairingWithResult{
-			IngredientName:     p.IngredientName,
-			IngredientCategory: p.IngredientCategory,
-			SharedCount:        p.SharedCount,
-			PairingScore:       p.PairingScore,
-			Result:             result,
-		}
-	}
-
 	return c.JSON(fiber.Map{
-		"status":      "success",
-		"ingredient":  ingredient,
-		"pairings":    results,
+		"status":     "success",
+		"ingredient": ingredient,
+		"pairings":   pairings,
 	})
 }
 
