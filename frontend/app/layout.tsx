@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { Cormorant_Garamond, Inter } from 'next/font/google';
+import Link from 'next/link';
+import Image from 'next/image';
 import './globals.css';
 
 const serif = Cormorant_Garamond({
@@ -16,6 +18,10 @@ const sans = Inter({
 export const metadata: Metadata = {
   title: 'Papila - The Art of Flavor',
   description: 'Discover harmonious flavor combinations',
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo_transparent.png',
+  },
 };
 
 export default function RootLayout({
