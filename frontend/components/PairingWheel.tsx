@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface FlavorPairing {
@@ -36,6 +36,14 @@ const CATEGORY_COLORS: Record<string, string> = {
 export default function PairingWheel({ pairings, highlightFlavors = [] }: PairingWheelProps) {
   const [hoveredFlavor, setHoveredFlavor] = useState<string | null>(null);
   const [tooltipData, setTooltipData] = useState<{ x: number; y: number; pairings: FlavorPairing[] } | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const highlightSet = useMemo(() => 
     new Set(highlightFlavors.map(f => f.toLowerCase())), 
@@ -73,10 +81,10 @@ export default function PairingWheel({ pairings, highlightFlavors = [] }: Pairin
     };
   }, [pairings]);
 
-  const size = 520;
+  const size = isMobile ? 320 : 520;
   const center = size / 2;
-  const outerRadius = size / 2 - 70;
-  const innerRadius = outerRadius - 25;
+  const outerRadius = size / 2 - (isMobile ? 50 : 70);
+  const innerRadius = outerRadius - (isMobile ? 18 : 25);
 
   const nodePositions = useMemo(() => {
     const positions = new Map<string, { x: number; y: number; angle: number }>();
@@ -231,9 +239,11 @@ export default function PairingWheel({ pairings, highlightFlavors = [] }: Pairin
           
           const highlighted = isHighlighted(node.name);
           const isHovered = hoveredFlavor === node.name;
-          const nodeSize = highlighted ? (isHovered ? 6 : 4) : 2.5;
+          const nodeSize = isMobile 
+            ? (highlighted ? (isHovered ? 4 : 3) : 2)
+            : (highlighted ? (isHovered ? 6 : 4) : 2.5);
           
-          const labelRadius = outerRadius + 12;
+          const labelRadius = outerRadius + (isMobile ? 8 : 12);
           const labelX = center + Math.cos(pos.angle) * labelRadius;
           const labelY = center + Math.sin(pos.angle) * labelRadius;
           const rotation = (pos.angle * 180) / Math.PI;
@@ -265,7 +275,7 @@ export default function PairingWheel({ pairings, highlightFlavors = [] }: Pairin
                 textAnchor={flipText ? "end" : "start"}
                 dominantBaseline="middle"
                 transform={`rotate(${flipText ? rotation + 180 : rotation}, ${labelX}, ${labelY})`}
-                className={`text-[7px] capitalize select-none ${
+                className={`${isMobile ? 'text-[5px]' : 'text-[7px]'} capitalize select-none ${
                   highlighted 
                     ? 'fill-neutral-800 font-medium' 
                     : 'fill-neutral-300'

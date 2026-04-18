@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FlavorProfile } from '@/lib/api';
 
@@ -21,28 +21,38 @@ export default function CorrelationDiagram({
   profilesB,
   sharedNotes,
 }: CorrelationDiagramProps) {
-  const width = 650;
-  const height = 420;
-  const leftX = 90;
-  const rightX = width - 90;
-  const startY = 50;
-  const nodeSpacing = 30;
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const width = isMobile ? 320 : 650;
+  const height = isMobile ? 350 : 420;
+  const leftX = isMobile ? 50 : 90;
+  const rightX = width - (isMobile ? 50 : 90);
+  const startY = isMobile ? 40 : 50;
+  const nodeSpacing = isMobile ? 26 : 30;
+  const maxItems = isMobile ? 10 : 12;
 
   const topA = useMemo(() => {
-    return profilesA.slice(0, 12).map(p => ({
+    return profilesA.slice(0, maxItems).map(p => ({
       name: p.flavor_note,
       count: p.molecule_count,
       isShared: sharedNotes.includes(p.flavor_note)
     }));
-  }, [profilesA, sharedNotes]);
+  }, [profilesA, sharedNotes, maxItems]);
 
   const topB = useMemo(() => {
-    return profilesB.slice(0, 12).map(p => ({
+    return profilesB.slice(0, maxItems).map(p => ({
       name: p.flavor_note,
       count: p.molecule_count,
       isShared: sharedNotes.includes(p.flavor_note)
     }));
-  }, [profilesB, sharedNotes]);
+  }, [profilesB, sharedNotes, maxItems]);
 
   const connections = useMemo(() => {
     const conns: { fromIndex: number; toIndex: number; flavorName: string }[] = [];
@@ -60,24 +70,24 @@ export default function CorrelationDiagram({
   const maxCountB = Math.max(...topB.map(f => f.count), 1);
 
   const getNodeRadius = (count: number, maxCount: number) => {
-    const minRadius = 8;
-    const maxRadius = 18;
+    const minRadius = isMobile ? 5 : 8;
+    const maxRadius = isMobile ? 12 : 18;
     return minRadius + (count / maxCount) * (maxRadius - minRadius);
   };
 
   return (
     <div className="flex flex-col items-center">
-      <div className="w-full flex justify-between items-center mb-8 px-4">
-        <div className="flex items-center gap-3">
-          <span className="w-4 h-4 rounded-full" style={{ backgroundColor: COLORS[0] }} />
-          <h3 className="text-2xl font-bold capitalize">{ingredientA}</h3>
+      <div className="w-full flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0 mb-4 sm:mb-8 px-2 sm:px-4">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full" style={{ backgroundColor: COLORS[0] }} />
+          <h3 className="text-lg sm:text-2xl font-bold capitalize">{ingredientA}</h3>
         </div>
-        <span className="text-sm font-medium text-neutral-400 uppercase tracking-wide">
-          Flavor Connections
+        <span className="text-xs sm:text-sm font-medium text-neutral-400 uppercase tracking-wide">
+          vs
         </span>
-        <div className="flex items-center gap-3">
-          <h3 className="text-2xl font-bold capitalize">{ingredientB}</h3>
-          <span className="w-4 h-4 rounded-full" style={{ backgroundColor: COLORS[1] }} />
+        <div className="flex items-center gap-2 sm:gap-3">
+          <h3 className="text-lg sm:text-2xl font-bold capitalize">{ingredientB}</h3>
+          <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full" style={{ backgroundColor: COLORS[1] }} />
         </div>
       </div>
 
@@ -130,11 +140,11 @@ export default function CorrelationDiagram({
               transition={{ delay: i * 0.04, duration: 0.4 }}
             >
               <text
-                x={leftX - radius - 12}
+                x={leftX - radius - (isMobile ? 6 : 12)}
                 y={y}
                 textAnchor="end"
                 dominantBaseline="middle"
-                className="text-sm capitalize font-medium"
+                className={`${isMobile ? 'text-[10px]' : 'text-sm'} capitalize font-medium`}
                 fill={flavor.isShared ? '#1a1a1a' : '#a0a0a0'}
               >
                 {flavor.name}
@@ -168,11 +178,11 @@ export default function CorrelationDiagram({
                 fill={flavor.isShared ? COLORS[1] : '#e0e0e0'}
               />
               <text
-                x={rightX + radius + 12}
+                x={rightX + radius + (isMobile ? 6 : 12)}
                 y={y}
                 textAnchor="start"
                 dominantBaseline="middle"
-                className="text-sm capitalize font-medium"
+                className={`${isMobile ? 'text-[10px]' : 'text-sm'} capitalize font-medium`}
                 fill={flavor.isShared ? '#1a1a1a' : '#a0a0a0'}
               >
                 {flavor.name}
@@ -183,12 +193,12 @@ export default function CorrelationDiagram({
       </svg>
 
       <motion.div 
-        className="mt-6 px-6 py-3 bg-neutral-100 rounded-full"
+        className="mt-4 sm:mt-6 px-4 sm:px-6 py-2 sm:py-3 bg-neutral-100 rounded-full"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        <span className="text-sm font-medium text-neutral-500">
+        <span className="text-xs sm:text-sm font-medium text-neutral-500">
           {connections.length} flavor{connections.length !== 1 ? 's' : ''} in common
         </span>
       </motion.div>
