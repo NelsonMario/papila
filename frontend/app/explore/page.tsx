@@ -471,7 +471,7 @@ export default function ExplorePage() {
                     >
                       ← Back
                     </button>
-                    <div className="min-w-[320px]">
+                    <div className="w-full">
                       <CorrelationDiagram
                         ingredientA={correlationPair[0]}
                         ingredientB={correlationPair[1]}
@@ -502,7 +502,7 @@ export default function ExplorePage() {
                     <p className="text-sm text-neutral-500 mb-6">
                       Common flavor combinations based on molecular co-occurrence
                     </p>
-                    <div className="min-w-[320px]">
+                    <div className="w-full">
                       <PairingWheel
                         pairings={flavorPairings}
                         highlightFlavors={
@@ -528,7 +528,7 @@ export default function ExplorePage() {
                     className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-neutral-200 overflow-x-auto"
                   >
                     {sharedProfiles.length > 0 ? (
-                      <div className="min-w-[320px]">
+                      <div className="w-full">
                         <ChordDiagram
                           selectedIngredients={selectedIngredients}
                           sharedProfiles={sharedProfiles}

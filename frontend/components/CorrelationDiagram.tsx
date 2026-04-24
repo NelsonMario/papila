@@ -32,6 +32,7 @@ export default function CorrelationDiagram({
 
   const width = isMobile ? 320 : 650;
   const height = isMobile ? 350 : 420;
+  const padX = isMobile ? 70 : 110;
   const leftX = isMobile ? 50 : 90;
   const rightX = width - (isMobile ? 50 : 90);
   const startY = isMobile ? 40 : 50;
@@ -91,7 +92,13 @@ export default function CorrelationDiagram({
         </div>
       </div>
 
-      <svg width={width} height={height} className="overflow-visible">
+      <svg
+        viewBox={`${-padX} 0 ${width + padX * 2} ${height}`}
+        width="100%"
+        preserveAspectRatio="xMidYMid meet"
+        style={{ maxWidth: width + padX * 2 }}
+        className="overflow-visible"
+      >
         {/* Connection lines */}
         {connections.map((conn, i) => {
           const fromY = startY + conn.fromIndex * nodeSpacing;

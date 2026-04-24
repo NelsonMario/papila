@@ -27,6 +27,7 @@ export default function ChordDiagram({
   
   const width = isMobile ? 320 : 600;
   const height = isMobile ? 350 : 420;
+  const padX = isMobile ? 70 : 110;
   
   const sharedOnly = useMemo(() => {
     return sharedProfiles
@@ -90,7 +91,13 @@ export default function ChordDiagram({
         </p>
       </div>
 
-      <svg width={width} height={height} className="overflow-visible">
+      <svg
+        viewBox={`${-padX} 0 ${width + padX * 2} ${height}`}
+        width="100%"
+        preserveAspectRatio="xMidYMid meet"
+        style={{ maxWidth: width + padX * 2 }}
+        className="overflow-visible"
+      >
         {/* Connection lines */}
         {flavorPositions.map((flavor, fi) => {
           const isHovered = hoveredFlavor === flavor.name;

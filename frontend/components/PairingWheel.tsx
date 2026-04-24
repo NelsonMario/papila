@@ -85,6 +85,7 @@ export default function PairingWheel({ pairings, highlightFlavors = [] }: Pairin
   const center = size / 2;
   const outerRadius = size / 2 - (isMobile ? 50 : 70);
   const innerRadius = outerRadius - (isMobile ? 18 : 25);
+  const pad = isMobile ? 40 : 60;
 
   const nodePositions = useMemo(() => {
     const positions = new Map<string, { x: number; y: number; angle: number }>();
@@ -148,7 +149,13 @@ export default function PairingWheel({ pairings, highlightFlavors = [] }: Pairin
 
   return (
     <div className="relative flex flex-col items-center">
-      <svg width={size} height={size} className="overflow-visible">
+      <svg
+        viewBox={`${-pad} ${-pad} ${size + pad * 2} ${size + pad * 2}`}
+        width="100%"
+        preserveAspectRatio="xMidYMid meet"
+        style={{ maxWidth: size + pad * 2 }}
+        className="overflow-visible"
+      >
         <defs>
           <filter id="glow-active">
             <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
