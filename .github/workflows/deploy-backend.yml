@@ -13,6 +13,13 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Debug secrets presence
+        run: |
+          echo "VPS_HOST set: ${{ secrets.VPS_HOST != '' }}"
+          echo "VPS_USER set: ${{ secrets.VPS_USER != '' }}"
+          echo "VPS_SSH_KEY set: ${{ secrets.VPS_SSH_KEY != '' }}"
+          echo "VPS_PORT set: ${{ secrets.VPS_PORT != '' }}"
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -22,7 +29,7 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           script: |
             set -e
-            cd /root/papila
+            cd /home/deploy/papila
             git pull origin main
             docker compose build backend
             docker compose up -d backend
