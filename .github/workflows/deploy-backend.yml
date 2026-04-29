@@ -22,7 +22,7 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           script: |
             set -e
-            cd /opt/papila
+            cd /root/papila
             git pull origin main
             docker compose build backend
             docker compose up -d backend
